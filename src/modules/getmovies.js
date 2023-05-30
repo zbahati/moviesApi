@@ -59,13 +59,14 @@ export const getImage = () => {
 
           <div class="comment-section">
               <form id="form">
-                  <input type="text" placeholder=" Your Name">
-                  <textarea placeholder=" Your Insights"></textarea>
+                  <input type="text" name="name" placeholder=" Your Name">
+                  <textarea name="message" placeholder=" Your Insights"></textarea>
                   <button type="submit">comment</button>
               </form>
           </div>
 
         </div>`;
+
               popup.insertAdjacentHTML("beforeend", popupMarkup);
 
               popup.style.display = 'block';
@@ -75,6 +76,25 @@ export const getImage = () => {
                 popup.style.display = 'none';
               })
 
+
+            const form = document.getElementById('form');
+            form.addEventListener('submit', (event) => {
+              event.preventDefault();
+
+              const formData = new FormData(form);
+              const destructedFormData = [...formData];
+              const destructedName = destructedFormData[0][1];
+              const destructedMessage = destructedFormData[1][1];
+
+              const destructedObject = {
+                "item_id": 1,
+                'username': destructedName,
+                'comment': destructedMessage
+              };
+
+
+
+            });
 
             });
           }
