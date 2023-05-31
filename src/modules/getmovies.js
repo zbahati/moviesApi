@@ -62,6 +62,7 @@ const getImage = () => {
                 .then((response) => {
                   if (response.ok) {
                     console.log('Like recorded successfully!');
+                    updateTotalLikes()
                   } else {
                     throw new Error(`Failed to record like: ${response.status}`);
                   }
@@ -83,7 +84,7 @@ const getImage = () => {
       console.error('Error fetching data:', error);
     });
 
-    window.onload = updateTotalLikes;
+
 };
 
 
