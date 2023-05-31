@@ -48,7 +48,7 @@ const getCommentCount = async (movieId) => {
       `https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/comments?item_id=${movieId}`
     );
     const comments = await response.json();
-
+           console.log(comments);
     const commentCount = document.getElementById(`comment-count-${movieId}`);
     if (commentCount) {
       commentCount.textContent = comments.length;
