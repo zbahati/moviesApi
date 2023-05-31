@@ -1,104 +1,66 @@
-const getImage = () => {
-  const imageContainer = document.querySelector('.movies-banners');
-
-  fetch('https://api.tvmaze.com/shows?page=2')
+const updateTotalLikes = () => {
+  fetch('https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/likes/')
     .then((response) => {
       if (response.ok) {
         return response.json();
-      } else {
-        throw new Error(`Error fetching data: ${response.status}`);
       }
+      throw new Error(`Error retrieving total likes: ${response.status}`);
     })
-    .then((data) => {
-      data.forEach((element) => {
-        const markup = `
-          <div class="movie-section">
-            <div class="img-card">
-              <img src="${element.image.medium}" alt="movies image">
-            </div>
-            <div class="img-description">
-              <div class="movies-name">
-                <h3>${element.name}</h3>
-                <div class="action">
-                  <button type="button" data-id="${element.id}" class="comment">Comment</button>
-                  <span>
-                    <i class="fa-regular fa-thumbs-up thumbsUpBtn"></i>
-                    <small class="counter" id="total-likes-${element.id}">0</small>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>`;
-
-        imageContainer.insertAdjacentHTML('beforeend', markup);
+    .then((likesData) => {
+      const totalLikesElements = document.querySelectorAll('.counter');
+      totalLikesElements.forEach((likesElement) => {
+        const itemId = likesElement.getAttribute('id').split('-')[2];
+        const itemLikes = likesData.find((item) => item.item_id === itemId);
+        const totalLikes = itemLikes ? itemLikes.likes || 0 : 0;
+        likesElement.textContent = totalLikes;
       });
-
-      const thumbsUpButtons = document.querySelectorAll('.thumbsUpBtn');
-      thumbsUpButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-          const itemId = button.parentElement.parentElement.querySelector('.comment').getAttribute('data-id');
-
-          fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/likes/`)
-            .then((response) => {
-              if (response.ok) {
-                return response.json();
-              } else {
-                throw new Error(`Error fetching likes data: ${response.status}`);
-              }
-            })
-            .then((data) => {
-              const itemLikes = data.find((item) => item.item_id === itemId);
-              const totalLikesElement = document.getElementById(`total-likes-${itemId}`);
-              const totalLikes = itemLikes ? itemLikes.likes || 0 : 0;
-              totalLikesElement.textContent = totalLikes;
-
-              fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/likes/`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ item_id: itemId }),
-              })
-                .then((response) => {
-                  if (response.ok) {
-                    console.log('Like recorded successfully!');
-                    updateTotalLikes()
-                  } else {
-                    throw new Error(`Failed to record like: ${response.status}`);
-                  }
-                })
-                .catch((error) => {
-                  console.error('Error recording like:', error);
-                });
-            })
-            .catch((error) => {
-              console.error('Error retrieving likes data:', error);
-            });
-        });
-      });
-
-      initializeComments(data);
-      updateTotalLikes();
     })
     .catch((error) => {
-      console.error('Error fetching data:', error);
+      console.error('Error retrieving total likes:', error);
     });
-
-
 };
-
-
-
-
+const getComments = async (movieId) => {
+  try {
+    const response = await fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/comments/?item_id=${movieId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching comments: ${response.status}`);
+    }
+    const comments = await response.json();
+    const commentsList = document.querySelector(`#comment-list-${movieId}`);
+    commentsList.innerHTML = '';
+    comments.forEach((comment) => {
+      const commentMarkup = `
+        <div class="comment">
+          <p>${comment.creation_date}, ${comment.username} : ${comment.comment}</p>
+        </div>`;
+      commentsList.insertAdjacentHTML('beforeend', commentMarkup);
+    });
+  } catch (error) {
+    console.error('Error retrieving comments:', error);
+  }
+};
+const getCommentCount = async (movieId) => {
+  try {
+    const response = await fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/comments/?item_id=${movieId}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching comments: ${response.status}`);
+    }
+    const comments = await response.json();
+    const commentCountElement = document.querySelector(`#comment-count-${movieId}`);
+    commentCountElement.textContent = comments.length;
+  } catch (error) {
+    console.error('Error retrieving comment count:', error);
+  }
+};
 
 const initializeComments = (data) => {
   const commentButtons = document.querySelectorAll('.comment');
 
   commentButtons.forEach((button) => {
-    button.addEventListener('click', (event) => {
+    button.addEventListener('click', () => {
       const popup = document.querySelector('#popup-modal');
       const movieId = button.getAttribute('data-id');
-      const relatedItem = data.find((item) => item.id === parseInt(movieId));
+      const relatedItem = data.find((item) => item.id === parseInt(movieId, 10));
 
       popup.innerHTML = '';
 
@@ -179,74 +141,93 @@ const initializeComments = (data) => {
           });
       });
 
-
       getComments(movieId);
 
       getCommentCount(movieId);
     });
   });
 };
+const getImage = () => {
+  const imageContainer = document.querySelector('.movies-banners');
 
-const getComments = async (movieId) => {
-  try {
-    const response = await fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/comments/?item_id=${movieId}`);
-    if (!response.ok) {
-      throw new Error(`Error fetching comments: ${response.status}`);
-    }
-    const comments = await response.json();
-    const commentsList = document.querySelector(`#comment-list-${movieId}`);
-    commentsList.innerHTML = '';
-    comments.forEach((comment) => {
-      console.log(comment)
-      const commentMarkup = `
-        <div class="comment">
-          <p>${comment.creation_date}, ${comment.username} : ${comment.comment}</p>
-        </div>`;
-      commentsList.insertAdjacentHTML('beforeend', commentMarkup);
-    });
-  } catch (error) {
-    console.error('Error retrieving comments:', error);
-  }
-};
-
-const getCommentCount = async (movieId) => {
-  try {
-    const response = await fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/comments/?item_id=${movieId}`);
-    if (!response.ok) {
-      throw new Error(`Error fetching comments: ${response.status}`);
-    }
-    const comments = await response.json();
-    const commentCountElement = document.querySelector(`#comment-count-${movieId}`);
-    commentCountElement.textContent = comments.length;
-  } catch (error) {
-    console.error('Error retrieving comment count:', error);
-  }
-};
-
-
-
-const updateTotalLikes = () => {
-  fetch(`https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/likes/`)
+  fetch('https://api.tvmaze.com/shows?page=2')
     .then((response) => {
       if (response.ok) {
         return response.json();
-      } else {
-        throw new Error(`Error retrieving total likes: ${response.status}`);
       }
+      throw new Error(`Error fetching data: ${response.status}`);
     })
-    .then((likesData) => {
-      const totalLikesElements = document.querySelectorAll('.counter');
-      totalLikesElements.forEach((likesElement) => {
-        const itemId = likesElement.getAttribute('id').split('-')[2];
-        const itemLikes = likesData.find((item) => item.item_id === itemId);
-        const totalLikes = itemLikes ? itemLikes.likes || 0 : 0;
-        likesElement.textContent = totalLikes;
+    .then((data) => {
+      data.forEach((element) => {
+        const markup = `
+          <div class="movie-section">
+            <div class="img-card">
+              <img src="${element.image.medium}" alt="movies image">
+            </div>
+            <div class="img-description">
+              <div class="movies-name">
+                <h3>${element.name}</h3>
+                <div class="action">
+                  <button type="button" data-id="${element.id}" class="comment">Comment</button>
+                  <span>
+                    <i class="fa-regular fa-thumbs-up thumbsUpBtn"></i>
+                    <small class="counter" id="total-likes-${element.id}">0</small>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+        imageContainer.insertAdjacentHTML('beforeend', markup);
       });
+
+      const thumbsUpButtons = document.querySelectorAll('.thumbsUpBtn');
+      thumbsUpButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const itemId = button.parentElement.parentElement.querySelector('.comment').getAttribute('data-id');
+
+          fetch('https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/likes/')
+            .then((response) => {
+              if (response.ok) {
+                return response.json();
+              }
+              throw new Error(`Error fetching likes data: ${response.status}`);
+            })
+            .then((data) => {
+              const itemLikes = data.find((item) => item.item_id === itemId);
+              const totalLikesElement = document.getElementById(`total-likes-${itemId}`);
+              const totalLikes = itemLikes ? itemLikes.likes || 0 : 0;
+              totalLikesElement.textContent = totalLikes;
+
+              fetch('https://us-central1-involvement-api.cloudfunctions.net/capstoneApi/apps/SpsK74xULIr0Fmgge82L/likes/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ item_id: itemId }),
+              })
+                .then((response) => {
+                  if (response.ok) {
+                    updateTotalLikes();
+                  } else {
+                    throw new Error(`Failed to record like: ${response.status}`);
+                  }
+                })
+                .catch((error) => {
+                  console.error('Error recording like:', error);
+                });
+            })
+            .catch((error) => {
+              console.error('Error retrieving likes data:', error);
+            });
+        });
+      });
+
+      initializeComments(data);
+      updateTotalLikes();
     })
     .catch((error) => {
-      console.error('Error retrieving total likes:', error);
+      console.error('Error fetching data:', error);
     });
 };
-
-
 export default getImage;

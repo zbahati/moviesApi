@@ -1,13 +1,11 @@
-import { getLikeCount } from './likes';
+import { getLikeCount } from './likes.js';
 
 describe('getLikeCount', () => {
   it('should fetch and display the like count', async () => {
     // Mock the fetch function
-    global.fetch = jest.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({ count: 10 }), // Mocked response with a count of 10
-      })
-    );
+    global.fetch = jest.fn(() => Promise.resolve({
+      json: () => Promise.resolve({ count: 10 }), // Mocked response with a count of 10
+    }));
 
     // Call the function under test
     const likeCount = await getLikeCount(1);

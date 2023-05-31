@@ -1,5 +1,5 @@
-const { getCommentCount } = require('./comments.js');
 const fetchMock = require('jest-fetch-mock');
+const { getCommentCount } = require('./comments.js');
 
 // Configure the fetch mock
 fetchMock.enableMocks();
@@ -50,7 +50,7 @@ describe('getCommentCount', () => {
     // Expect the console.error method to be called with the correct error message
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Error fetching comment count:',
-      'Fetch error'
+      'Fetch error',
     );
   });
 });
