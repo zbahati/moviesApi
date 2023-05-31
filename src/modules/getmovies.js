@@ -116,12 +116,11 @@ const initializeComments = (data) => {
             </div>
           </div>
           <div class="description">
-          <div class="comment-count">
-           <p>Comment: <span id="comment-count-${movieId}">0</span> <p>
-        </div>
+              <div class="comment-count">
+              <p>Comment: <span id="comment-count-${movieId}">0</span> <p>
+            </div>
             <div class="added-comment">
-              <!-- Display the comments from the database -->
-              <div id="comment-list-${movieId}"></div>
+              <div class='comment-list-style' id="comment-list-${movieId}"></div>
             </div>
           </div>
           <div class="comment-section">
