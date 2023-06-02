@@ -1,0 +1,106 @@
+export const getImage = () => {
+  const imageContainer = document.querySelector(".movies-banners");
+  fetch("https://api.tvmaze.com/shows?page=1")
+    .then((response) => response.json())
+    .then((data) => {
+      data.forEach((element) => {
+        const markup = `<div class="movie-section">
+        <div class="img-card">
+      <img src="${element.image.medium}" alt="movies image">
+  </div>
+  <div class="img-description">
+      <div class="movies-name">
+          <h3>${element.name}</h3>
+          <div class="action">
+              <button type="button" data-id="${element.id}" class="comment">Comment</button>
+              <span>
+              <i class="fa-regular fa-thumbs-up"></i>
+              <small>12</small>
+
+              </span>
+          </div>
+      </div>
+
+  </div>
+  </div>`;
+        imageContainer.insertAdjacentHTML("beforeend", markup);
+        const getComent = () => {
+          const comment = document.querySelectorAll(".comment");
+          for (let i = 0; i < comment.length; i++) {
+            comment[i].addEventListener("click", (event) => {
+              const popup = document.querySelector("#popup-modal");
+
+              const commentid = event.target;
+              const movieId = commentid.getAttribute("data-id");
+              const relatedItem = data.find(
+                (item) => item.id === parseInt(movieId)
+              );
+              const relatedImage = relatedItem.image.original;
+              popup.innerHTML = "";
+              const popupMarkup = `
+        <div class="img">
+          <div class="movies-details-section">
+            <img src="${relatedImage}" alt="movies images">
+            <span id="close-btn">&#10005;</span>
+            <div class="summary">
+              <p>
+                Name: ${relatedItem.name} &nbsp;&nbsp;&nbsp; Genres: ${relatedItem.genres} <br>
+                Country: ${relatedItem.network.country.name} &nbsp;&nbsp;&nbsp; Language: ${relatedItem.language} <br>
+                Released Date : ${relatedItem.premiered} &nbsp;&nbsp;&nbsp; Status: ${relatedItem.status}<br>
+              </p>
+            </div>
+          </div>
+          <div class="description">
+            <div class="added-comment">
+                <p>Name : Bahati</p>
+                <p>Comments : This is the comments</p>
+            </div>
+        </div>
+
+          <div class="comment-section">
+              <form id="form">
+                  <input type="text" name="name" placeholder=" Your Name">
+                  <textarea name="message" placeholder=" Your Insights"></textarea>
+                  <button type="submit">comment</button>
+              </form>
+          </div>
+
+        </div>`;
+
+              popup.insertAdjacentHTML("beforeend", popupMarkup);
+
+              popup.style.display = 'block';
+
+              const closeBtn = document.querySelector('#close-btn');
+              closeBtn.addEventListener('click', () => {
+                popup.style.display = 'none';
+              })
+
+
+            const form = document.getElementById('form');
+            form.addEventListener('submit', (event) => {
+              event.preventDefault();
+
+              const formData = new FormData(form);
+              const destructedFormData = [...formData];
+              const destructedName = destructedFormData[0][1];
+              const destructedMessage = destructedFormData[1][1];
+
+              const destructedObject = {
+                "item_id": 1,
+                'username': destructedName,
+                'comment': destructedMessage
+              };
+
+
+
+            });
+
+            });
+          }
+        };
+
+        getComent();
+      });
+    });
+};
